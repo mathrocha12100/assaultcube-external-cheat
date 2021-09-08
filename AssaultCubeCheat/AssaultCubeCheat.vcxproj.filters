@@ -19,6 +19,9 @@
     <Filter Include="mem">
       <UniqueIdentifier>{abae7f3b-1800-4654-af1d-86aa66b84666}</UniqueIdentifier>
     </Filter>
+    <Filter Include="consoleFuncs">
+      <UniqueIdentifier>{2a4d93ec-cf59-45bd-9dc7-10b89f797ce3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssaultCubeCheat.cpp">
@@ -30,6 +33,9 @@
     <ClCompile Include="mem.cpp">
       <Filter>mem</Filter>
     </ClCompile>
+    <ClCompile Include="consoleFuncs.cpp">
+      <Filter>consoleFuncs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="proc.h">
@@ -37,6 +43,9 @@
     </ClInclude>
     <ClInclude Include="mem.h">
       <Filter>mem</Filter>
+    </ClInclude>
+    <ClInclude Include="consoleFuncs.h">
+      <Filter>consoleFuncs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -142,10 +142,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssaultCubeCheat.cpp" />
+    <ClCompile Include="consoleFuncs.cpp" />
     <ClCompile Include="mem.cpp" />
     <ClCompile Include="proc.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="consoleFuncs.h" />
     <ClInclude Include="mem.h" />
     <ClInclude Include="proc.h" />
   </ItemGroup>

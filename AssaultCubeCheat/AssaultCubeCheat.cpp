@@ -1,8 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <Windows.h>
+
 #include "proc.h"
 #include "mem.h"
+#include "consoleFuncs.h"
 
 /*
 *  Primeiro cheat externo que desenvolvi kkk
@@ -11,10 +13,10 @@
 
 int main() {
     HANDLE hProcess = 0;
-    uintptr_t moduleBase = 0, localPlayerPtr = 0, healthAdrr = 0;
-    bool bHealth = false, bAmmo = false, bRecoil = false;
+    uintptr_t moduleBase = 0, localPlayerPtr = 0, visualHealthAdrr = 0;
+    bool bHealth = false, bAmmo = false, bRecoil = false, bNoclip = false;
 
-    const int newValue = 1337;
+    const int newValue = 999999999;
 
     DWORD procId = GetProcId(L"ac_client.exe");
 
@@ -30,22 +32,56 @@ int main() {
     localPlayerPtr = moduleBase + 0x10f4f4; 
     uintptr_t granadePtr = moduleBase + 0x10FC84;
 
-    healthAdrr = FindDMAAddy(hProcess, localPlayerPtr, { 0xf8 });
-    
+    visualHealthAdrr = FindDMAAddy(hProcess, localPlayerPtr, { 0xf8 });
+    uintptr_t healthAddrReal = FindDMAAddy(hProcess, moduleBase + 0x10FC84, { 0x0, 0x27C });
+
     uintptr_t axisXAddr = FindDMAAddy(hProcess, moduleBase + 0x109B74, { 0x34 });
+
     uintptr_t granadeVisualAddr = FindDMAAddy(hProcess, localPlayerPtr, { 0x158 });
     uintptr_t granadeRealAddr = FindDMAAddy(hProcess, granadePtr, { 0x0, 0x2DC });
 
     DWORD dwExit = 0;
-    
+
+   
+
+    consoleFuncs::DrawInConsole(bHealth, bAmmo, bRecoil, bNoclip);
     while (GetExitCodeProcess(hProcess, &dwExit) && dwExit == STILL_ACTIVE) {
 
+        if (GetAsyncKeyState(VK_NUMPAD5)) {
+            bNoclip = !bNoclip;
+            consoleFuncs::DrawInConsole(bHealth, bAmmo, bRecoil, bNoclip);
+        }
+
+        if (bNoclip && GetAsyncKeyState(VK_UP) & 1) {
+            DWORD value = mem::GetValueOfAdress(axisXAddr, hProcess, true);
+            float newPositionInXAxis = value + 2.0f;
+
+            mem::PatchEx((BYTE*)axisXAddr, (BYTE*)&newPositionInXAxis, sizeof(newPositionInXAxis), hProcess);
+        }
+
+        if (bNoclip && GetAsyncKeyState(VK_DOWN) & 1) {
+            DWORD value = mem::GetValueOfAdress(axisXAddr, hProcess, true);
+            float newPositionInXAxis = value - 2.0f;
+
+            mem::PatchEx((BYTE*)axisXAddr, (BYTE*)&newPositionInXAxis, sizeof(newPositionInXAxis), hProcess);
+        }
+        
         if (GetAsyncKeyState(VK_NUMPAD1) & 1) {
             bHealth = !bHealth;
+            consoleFuncs::DrawInConsole(bHealth, bAmmo, bRecoil, bNoclip);
+            
+            if (bHealth) {
+                mem::NopEx((BYTE*)(moduleBase + 0x29D1F), 1, hProcess);
+            }
+            else {
+                mem::PatchEx((BYTE*)(moduleBase + 0x29D1F), (BYTE*)"\x29\x7B\x04", 1, hProcess);
+            }
+          
         }
 
         if (GetAsyncKeyState(VK_NUMPAD2) & 1) {
             bAmmo = !bAmmo;
+            consoleFuncs::DrawInConsole(bHealth, bAmmo, bRecoil, bNoclip);
 
             if (bAmmo) {
                 mem::PatchEx((BYTE*)(moduleBase + 0x637e9), (BYTE*)"\xFF\x06", 2, hProcess);
@@ -64,28 +100,23 @@ int main() {
             else {
                 mem::PatchEx((BYTE*)(moduleBase + 0x63786), (BYTE*)"\x50\x8d\x4c\x24\x1c\x51\x8b\xce\xff\xd2", 10, hProcess);
             }
+            consoleFuncs::DrawInConsole(bHealth, bAmmo, bRecoil, bNoclip);
+
         }
 
         if (GetAsyncKeyState(VK_NUMPAD4) & 1) {
-            int granade = 2;
+            int granade = 3;
          
             mem::PatchEx((BYTE*)granadeVisualAddr, (BYTE*)&granade, sizeof(granade), hProcess);
             mem::PatchEx((BYTE*)granadeRealAddr, (BYTE*)&granade, sizeof(granade), hProcess);
+            consoleFuncs::DrawInConsole(bHealth, bAmmo, bRecoil, bNoclip);
         }
 
-        if (GetAsyncKeyState(VK_NUMPAD5) & 1) {
-            float newPosition = 76.0f;
-
-            mem::PatchEx((BYTE*)axisXAddr, (BYTE*)&newPosition, sizeof(newPosition), hProcess);
-        }
-
-        if (GetAsyncKeyState(VK_INSERT) & 1) {
+        if (GetAsyncKeyState(VK_NUMPAD0) & 1) {
             return 0;
         }
 
-        if (bHealth) {
-            mem::PatchEx((BYTE*)healthAdrr, (BYTE*)&newValue, sizeof(newValue), hProcess);
-        }
+       
         Sleep(10);
     }
 
